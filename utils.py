@@ -1,0 +1,47 @@
+# -*- coding: utf-8 -*-
+import torch
+import matplotlib.pyplot as plt
+import numpy as np
+from torch.autograd import Variable
+
+
+def gauss_var(p):
+    return (1-p)/p
+
+
+def imshow(img):
+    img = img / 2 + 0.5     # unnormalize
+    npimg = img.numpy()
+    plt.imshow(np.transpose(npimg, (1, 2, 0)))
+
+
+def fix_params_layer_size(l):
+    if l == 0:
+        return 65
+    sqrt_arg = (860 * l + 1089)
+    sqrt = np.sqrt(sqrt_arg)
+    total = 5 * (sqrt - 33) / l
+    return int(total)
+
+
+def save_fig(x, y_list, series_labels, title, xlabel, ylabel):
+
+    markers = ["x", "o", "d", ",", "^"]
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    for i, y in enumerate(y_list):
+        label = series_labels[i]
+        ax1.scatter(x, y, s=10, label=label, marker=markers[i])
+        ax1.plot(x, y)
+    plt.legend(loc='upper right')
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.yscale('log')
+    plt.title(title)
+    plt.savefig("saved_figures/" + title + ".jpg")
+    plt.show()
+
+
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
