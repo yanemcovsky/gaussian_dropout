@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import torch
 import matplotlib.pyplot as plt
+# plt.switch_backend('agg')
 import numpy as np
 from torch.autograd import Variable
-
+from dataloaders import args
 
 def gauss_var(p):
     return (1-p)/p
@@ -16,17 +17,27 @@ def imshow(img):
 
 
 def fix_params_layer_size(l):
+    if args.mnist_databse:
+        if l == 0:
+            return 65
+        sqrt_arg = (860 * l + 1089)
+        sqrt = np.sqrt(sqrt_arg)
+        total = 5 * (sqrt - 33) / l
+        return int(total)
+
     if l == 0:
-        return 65
-    sqrt_arg = (860 * l + 1089)
+        return int(138.28)
+    sqrt_arg = (17976 * l + 4225)
     sqrt = np.sqrt(sqrt_arg)
-    total = 5 * (sqrt - 33) / l
+    total = (sqrt - 65) / l
     return int(total)
 
 
 def save_fig(x, y_list, series_labels, title, xlabel, ylabel):
 
-    markers = ["x", "o", "d", ",", "^"]
+    markers_unique = ["x", "o", "v", "d", ",", "^", "*", "|"]
+    markers_repeats = int(np.floor(len(y_list)/len(markers_unique))) + 1
+    markers = markers_unique * markers_repeats
 
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
@@ -40,8 +51,17 @@ def save_fig(x, y_list, series_labels, title, xlabel, ylabel):
     plt.yscale('log')
     plt.title(title)
     plt.savefig("saved_figures/" + title + ".jpg")
-    plt.show()
+    # plt.show()
 
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+
+def calc_loss(model, optimizer, criterion, data, target):
+    optimizer.zero_grad()
+    output = model(data)
+    loss = criterion(output, target)
+    loss.backward()
+
+    return loss
