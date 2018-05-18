@@ -35,7 +35,8 @@ def fix_params_layer_size(l):
 
 def save_fig(x, y_list, series_labels, title, xlabel, ylabel):
 
-    markers_unique = ["x", "o", "v", "d", ",", "^", "*", "|"]
+    # markers_unique = ["x", "o", "v", "d", ",", "^", "*", "|"]
+    markers_unique = ["x", "o", "d", ",", "^"]
     markers_repeats = int(np.floor(len(y_list)/len(markers_unique))) + 1
     markers = markers_unique * markers_repeats
 
@@ -50,12 +51,20 @@ def save_fig(x, y_list, series_labels, title, xlabel, ylabel):
     plt.ylabel(ylabel)
     plt.yscale('log')
     plt.title(title)
-    plt.savefig("saved_figures/" + title + ".jpg")
-    # plt.show()
+    plt.savefig("saved_figures/" + title + ".png")
+    plt.show()
 
 
 def count_parameters(model):
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+    # return sum(p.numel() for p in model.parameters() if p.requires_grad and not str(name).count("bias"))
+    count = 0
+    params = list(model.named_parameters())
+    for (name, p) in params:
+        if p.requires_grad and not str(name).count("bias"):
+            count += p.numel()
+    return count
+
+
 
 
 def calc_loss(model, optimizer, criterion, data, target):

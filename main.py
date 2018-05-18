@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from dataloaders import args
+from dataloaders import args, train_loader
 from models import GaussDropoutNet, GaussDropoutNetLimited\
     , BernoulliDropoutNet, BernoulliDropoutNetLimited
 from test import pre_train_test, post_train_test
@@ -65,13 +65,17 @@ def run_gauss(min_fc_layers=0, max_fc_layers=args.max_fc_layers
     parameters_num_list = []
     h_u_mean_list = []
     h_u_exp_mean_list = []
+
     grad_mean_list = []
 
     exp_grad_mean_list = []
+
     h_u_plus_exp_grad_mean_list = []
 
     exp_alpha_mean_list = []
+
     exp_alpha_prod_mean_list = []
+
     exp_alpha_frac_mean_list = []
 
     loss_mean_list = []
@@ -134,13 +138,15 @@ def run_gauss(min_fc_layers=0, max_fc_layers=args.max_fc_layers
     print(norm_mean_list)
 
     paramrters_mean = int(np.sum(parameters_num_list)/len(parameters_num_list))
+    paramrters_step = 0
+    if len(parameters_num_list) > 1:
+        paramrters_step = int(parameters_num_list[1] - parameters_num_list[0])
 
     if test_before_train:
-        y_list = [h_u_mean_list, h_u_exp_mean_list, grad_mean_list, exp_alpha_mean_list,
-                  exp_grad_mean_list, h_u_plus_exp_grad_mean_list,
-                  exp_alpha_prod_mean_list, exp_alpha_frac_mean_list]
-        series_labels = ["f1=h_u", "f2=exp(h_u)-1", "f3=||grad_u(l)||^2", "f4=exp(a*h_u)",
-                         "E[f2*f3]", "E[f1+2*f2*f3]", "E[f1*f3*f4]", "E[f1*f3*f4]/E[f4]"]
+        y_list = [h_u_mean_list, h_u_exp_mean_list, grad_mean_list,
+                  exp_grad_mean_list, h_u_plus_exp_grad_mean_list]
+        series_labels = ["f1=h_u", "f2=exp(h_u)-1", "f3=||grad_u(l)||^2",
+                         "f2*f3", "f1+2*f2*f3"]
         ylabel = "c"
         xlabel = "number of layers"
 
@@ -148,7 +154,23 @@ def run_gauss(min_fc_layers=0, max_fc_layers=args.max_fc_layers
         if limit_params:
             title += "~" + str(paramrters_mean) + " parameters total"
         else:
-            title += "2500 parameters per layer"
+            title += str(paramrters_step) + " parameters per layer"
+
+        save_fig(x=num_layers_list, y_list=y_list, series_labels=series_labels, title=title, xlabel=xlabel, ylabel=ylabel)
+
+        y_list = [h_u_mean_list, grad_mean_list, exp_alpha_mean_list,
+                  exp_alpha_prod_mean_list, exp_alpha_frac_mean_list]
+        series_labels = ["f1=h_u", "f2=||grad_u(l)||^2", "f3=exp(a*h_u)",
+                         "f4=f1*f2*f3", "f4/f3"]
+        ylabel = "c"
+        xlabel = "number of layers"
+
+        title = "Gaussian Dropout, "
+        if limit_params:
+            title += "~" + str(paramrters_mean) + " parameters total"
+        else:
+            title += str(paramrters_step) + " parameters per layer"
+        title += " (alpha)"
 
         save_fig(x=num_layers_list, y_list=y_list, series_labels=series_labels, title=title, xlabel=xlabel, ylabel=ylabel)
 
@@ -330,6 +352,10 @@ def run_bernoulli(gauss_results, min_fc_layers=0, max_fc_layers=args.max_fc_laye
     print(compare_results[1])
 
     paramrters_mean = int(np.sum(parameters_num_list)/len(parameters_num_list))
+    paramrters_step = 0
+    if len(parameters_num_list) > 1:
+        paramrters_step = int(parameters_num_list[1] - parameters_num_list[0])
+
     y_list = compare_results
     series_labels = ["f1=h_u", "f2=exp(h_u)-1", "f3=||grad_u(l)||^2", "f4=exp(a*h_u)",
                      "E[f2*f3]", "E[f1+2*f2*f3]", "E[f1*f3*f4]", "E[f1*f3*f4]/E[f4]"]
@@ -340,7 +366,7 @@ def run_bernoulli(gauss_results, min_fc_layers=0, max_fc_layers=args.max_fc_laye
     if limit_params:
         title += "~" + str(paramrters_mean) + " parameters total"
     else:
-        title += "2500 parameters per layer"
+        title += str(paramrters_step) + " parameters per layer"
 
     save_fig(x=num_layers_list, y_list=y_list, series_labels=series_labels, title=title, xlabel=xlabel, ylabel=ylabel)
 
@@ -500,15 +526,10 @@ start_time = datetime.now()
 print("args")
 print(args)
 
-# if args.limit_params:
-#     run_gauss_dropout_limited()
-# else:
-#     run_gauss_dropout()
-
-# run_gauss()
-# run_gauss(limit_params=True)
-run_gauss_dropout(test_before_train=args.test_before_train, test_after_train=args.test_after_train)
-run_gauss_dropout_limited(test_before_train=args.test_before_train, test_after_train=args.test_after_train)
+if args.limit_params:
+    run_gauss_dropout_limited(test_before_train=args.test_before_train, test_after_train=args.test_after_train)
+else:
+    run_gauss_dropout(test_before_train=args.test_before_train, test_after_train=args.test_after_train)
 
 end_time = datetime.now()
 print("run time: " + str(end_time - start_time))

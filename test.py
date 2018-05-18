@@ -41,14 +41,8 @@ def pre_train_test(model, optimizer, criterion):
     exp_grad_mean = exp_grad_sum / count
     h_u_plus_exp_grad_mean = h_u_mean + 2 * exp_grad_mean
 
-    h_u_result = h_u_mean / len(train_loader)
-    h_u_exp_result = h_u_exp_mean / len(train_loader)
-    grad_result = grad_mean / len(train_loader)
-    exp_grad_result = exp_grad_mean / len(train_loader)
-    h_u_plus_exp_grad_result = h_u_plus_exp_grad_mean / len(train_loader)
-
-    results = (h_u_result, h_u_exp_result, grad_result, exp_grad_result, h_u_plus_exp_grad_result)
-    # results = (h_u_result.item(), h_u_exp_result.item(), grad_result.item(), exp_grad_result.item(), h_u_plus_exp_grad_result.item())
+    results = (h_u_mean, h_u_exp_mean, grad_mean, exp_grad_mean, h_u_plus_exp_grad_mean)
+    # results = (h_u_mean.item(), h_u_exp_mean.item(), grad_mean, exp_grad_mean.item(), h_u_plus_exp_grad_mean.item())
 
     exp_alpha_means = [val/count for val in exp_alpha_sums]
     exp_alpha_mean = np.sum(exp_alpha_means)/len(exp_alpha_means)
@@ -57,11 +51,11 @@ def pre_train_test(model, optimizer, criterion):
     exp_alpha_frac_means = [val/exp_alpha_means[j] for j, val in enumerate(exp_alpha_prod_means)]
     exp_alpha_frac_mean = np.sum(exp_alpha_frac_means)/len(exp_alpha_frac_means)
 
-    exp_alpha_result = exp_alpha_mean / len(train_loader)
-    exp_alpha_prod_result = exp_alpha_prod_mean / len(train_loader)
-    exp_alpha_frac_result = exp_alpha_frac_mean / len(train_loader)
+    # exp_alpha_result = exp_alpha_mean / len(train_loader)
+    # exp_alpha_prod_result = exp_alpha_prod_mean / len(train_loader)
+    # exp_alpha_frac_result = exp_alpha_frac_mean / len(train_loader)
 
-    results_alpha = (exp_alpha_result, exp_alpha_prod_result, exp_alpha_frac_result)
+    results_alpha = (exp_alpha_mean, exp_alpha_prod_mean, exp_alpha_frac_mean)
 
     return results, results_alpha
 
